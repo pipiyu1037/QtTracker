@@ -59,12 +59,16 @@ public:
 
 private slots:
     void processFrame();
+    void begin();
+    void pause();
+    void stop();
 
 private:
     Ui::QtTrackerClass ui;
+    std::shared_ptr<QImage> mpQImg;
 
     bool init();
-    //bool update(cv::Mat& colorImg);
+    bool update();
     void getJointVelocity(Joint& J, int bodyIndex);
     float getAngle(Joint& Knee, Joint& Hip, Joint& Ankle, int bodyIndex);
     void getAngleV(Joint& Knee, Joint& Hip, Joint& Ankle, int bodyIndex);

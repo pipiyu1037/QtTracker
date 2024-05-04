@@ -42,6 +42,13 @@ QtTracker::QtTracker(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
+    mpTimer = std::make_shared<QTimer>(this);
+    mpQImg = std::make_shared<QImage>();
+
+    connect(mpTimer.get(), SIGNAL(timeout() ), this, SLOT(processFrame() ));
+    connect(ui.Begin, SIGNAL(clicked()), this, SLOT(begin() ));
+    connect(ui.Pause, SIGNAL(clicked()), this, SLOT(pause() ));
+    connect(ui.Stop, SIGNAL(clicked()), this, SLOT(stop()));
 
     if (!init()) {
         std::runtime_error("failed to init kinect");
@@ -102,6 +109,7 @@ bool QtTracker::init()
         sensor->get_CoordinateMapper(&mpCoordinateMapper);
         
         Img = cv::Mat(height, width, CV_8UC4);
+        colorImg = cv::Mat(height, width, CV_8UC4);
 
         SafeRelease(pBodyFrameSource);
         SafeRelease(pColorFrameSource);
@@ -116,8 +124,109 @@ bool QtTracker::init()
     return true;
 }
 
-void QtTracker::processFrame() {
+bool QtTracker::update()
+{
+    currentFrame++;
+    std::cout << "|---------begin frame:" << currentFrame << "-------------|" << std::endl;
+    if (!mpBodyFrameReader) {
+        std::cout << "BodyFrameReader is null" << std::endl;
+        return false;
+    }
+    if (!mpColorFrameReader) {
+        std::cout << "ColorFrameReader is null" << std::endl;
+        return false;
+    }
 
+    IColorFrame* pColorFrame = nullptr;
+
+    if (mpColorFrameReader->AcquireLatestFrame(&pColorFrame) == S_OK) {
+        std::cout << "acquire color frame" << std::endl;
+        pColorFrame->CopyConvertedFrameDataToArray(uBufferSize, colorImg.data, ColorImageFormat_Bgra);
+    }
+    Img = colorImg.clone();
+    IBodyFrame* pBodyFrame = nullptr;
+
+    if (mpBodyFrameReader->AcquireLatestFrame(&pBodyFrame) == S_OK && pBodyFrame->GetAndRefreshBodyData(bodyCount, mpBodies.data()) == S_OK) {
+        currentTime = std::chrono::steady_clock::now();
+        int i = 0;
+        for (auto& pBody : mpBodies) {
+            BOOLEAN bTracked = false;
+
+            if ((pBody->get_IsTracked(&bTracked) == S_OK) && bTracked)
+            {
+                std::cout << "Trcke body: " << i++ << std::endl;
+
+                if (pBody->GetJoints(JointType::JointType_Count, currentJoints[i].data()) == S_OK)
+                {
+                    getJointVelocity(currentJoints[i][JointType_SpineBase], i);
+
+                    getJointVelocity(currentJoints[i][JointType_HipLeft], i);
+                    getJointVelocity(currentJoints[i][JointType_KneeRight], i);
+                    getJointVelocity(currentJoints[i][JointType_AnkleLeft], i);
+                    getJointVelocity(currentJoints[i][JointType_FootLeft], i);
+
+                    getJointVelocity(currentJoints[i][JointType_HipRight], i);
+                    getJointVelocity(currentJoints[i][JointType_KneeRight], i);
+                    getJointVelocity(currentJoints[i][JointType_AnkleRight], i);
+                    getJointVelocity(currentJoints[i][JointType_FootRight], i);
+
+                    DrawSphere(Img, currentJoints[i][JointType_SpineBase], mpCoordinateMapper);
+
+                    DrawSphere(Img, currentJoints[i][JointType_HipLeft], mpCoordinateMapper);
+                    DrawSphere(Img, currentJoints[i][JointType_KneeLeft], mpCoordinateMapper);
+                    DrawSphere(Img, currentJoints[i][JointType_AnkleLeft], mpCoordinateMapper);
+                    DrawSphere(Img, currentJoints[i][JointType_FootLeft], mpCoordinateMapper);
+
+                    DrawSphere(Img, currentJoints[i][JointType_HipRight], mpCoordinateMapper);
+                    DrawSphere(Img, currentJoints[i][JointType_KneeRight], mpCoordinateMapper);
+                    DrawSphere(Img, currentJoints[i][JointType_AnkleRight], mpCoordinateMapper);
+                    DrawSphere(Img, currentJoints[i][JointType_FootRight], mpCoordinateMapper);
+
+                    DrawLine(Img, currentJoints[i][JointType_SpineBase], currentJoints[i][JointType_HipLeft], mpCoordinateMapper);
+                    DrawLine(Img, currentJoints[i][JointType_HipLeft], currentJoints[i][JointType_KneeLeft], mpCoordinateMapper);
+                    DrawLine(Img, currentJoints[i][JointType_KneeLeft], currentJoints[i][JointType_AnkleLeft], mpCoordinateMapper);
+                    DrawLine(Img, currentJoints[i][JointType_AnkleLeft], currentJoints[i][JointType_FootLeft], mpCoordinateMapper);
+
+                    DrawLine(Img, currentJoints[i][JointType_SpineBase], currentJoints[i][JointType_HipRight], mpCoordinateMapper);
+                    DrawLine(Img, currentJoints[i][JointType_HipRight], currentJoints[i][JointType_KneeRight], mpCoordinateMapper);
+                    DrawLine(Img, currentJoints[i][JointType_KneeRight], currentJoints[i][JointType_AnkleRight], mpCoordinateMapper);
+                    DrawLine(Img, currentJoints[i][JointType_AnkleRight], currentJoints[i][JointType_FootRight], mpCoordinateMapper);
+                }
+            }
+        }
+    }
+    SafeRelease(pColorFrame);
+    SafeRelease(pBodyFrame);
+    return true;
+}
+
+void QtTracker::begin()
+{
+    qDebug() << "begin";
+    //mpTimer->setInterval(30);
+    mpTimer->start(20);
+}
+
+void QtTracker::pause()
+{
+
+}
+
+void QtTracker::stop()
+{
+
+}
+
+void QtTracker::processFrame()
+{
+    //update content of cvImg
+    update();
+
+    mpQImg = std::make_shared<QImage>(
+        Mat2Image(Img).scaled(ui.label->width(), ui.label->height(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+    );
+
+    ui.label->setPixmap(QPixmap::fromImage(*mpQImg.get()));
 }
 
 void QtTracker::getJointVelocity(Joint& J, int bodyIndex)
