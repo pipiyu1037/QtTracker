@@ -5,6 +5,9 @@
 #include <QDebug>
 #include <QTimer>
 #include <QImage>
+#include <qsplineseries.h>
+#include <qvalueaxis.h>
+#include <qchartview.h>
 
 #include <Kinect.h>
 #include <iostream>
@@ -14,6 +17,7 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 #include "argument.h"
+#include "Chart.h"
 
 const std::vector<std::string> jointName = {
     "SpineBase",
@@ -68,11 +72,13 @@ private:
     std::shared_ptr<QImage> mpQImg;
 
     bool init();
+    
     bool update();
     void getJointVelocity(Joint& J, int bodyIndex);
     float getAngle(Joint& Knee, Joint& Hip, Joint& Ankle, int bodyIndex);
     void getAngleV(Joint& Knee, Joint& Hip, Joint& Ankle, int bodyIndex);
     //void getSingleJointArgs(Joint& J, int bodyIndex);
+
 
     bool trackHipLeft = true;
     bool trackKneeLeft = true;
@@ -85,7 +91,10 @@ private:
     bool trackFootRight = true;
 
     //void renderUI();
+    bool startTrack = false;
+    std::chrono::steady_clock::time_point startTime;
     std::chrono::steady_clock::time_point currentTime;
+    double currentToStart;
 
     int currentFrame = 0;
     UINT uBufferSize = 0;
@@ -102,11 +111,22 @@ private:
     std::array<std::array<Joint, JointType::JointType_Count>, bodyCount> lastJoints;
     std::array<std::array<int64, JointType::JointType_Count>, bodyCount> lastJointFrame;
     std::array<std::array<std::chrono::steady_clock::time_point, JointType::JointType_Count>, bodyCount> lastJointTime;
-
+    
 
     Argument args;
     cv::Mat Img;
     cv::Mat colorImg;
 
     std::shared_ptr<QTimer> mpTimer;
+
+    void initCharts();
+    std::shared_ptr<Chart> mpChart = nullptr;
+
+    
+    /*std::shared_ptr<QChart> mpLeftKneeChart;
+    std::shared_ptr<QSplineSeries> mpVelocitySpline;
+    std::shared_ptr<QValueAxis> mpAxisX;
+    std::shared_ptr<QValueAxis> mpAxisY;*/
+    std::array<std::shared_ptr<Chart>, JointType::JointType_Count> mpCharts = { nullptr };
+
 };
