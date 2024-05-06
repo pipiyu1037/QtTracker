@@ -56,10 +56,10 @@
    <widget class="QLabel" name="imgArea">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>10</x>
       <y>20</y>
-      <width>711</width>
-      <height>471</height>
+      <width>701</width>
+      <height>451</height>
      </rect>
     </property>
     <property name="text">
@@ -69,9 +69,9 @@
    <widget class="QScrollArea" name="scrollArea">
     <property name="geometry">
      <rect>
-      <x>840</x>
+      <x>710</x>
       <y>20</y>
-      <width>751</width>
+      <width>921</width>
       <height>721</height>
      </rect>
     </property>
@@ -83,7 +83,7 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>749</width>
+       <width>919</width>
        <height>719</height>
       </rect>
      </property>
@@ -92,7 +92,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>641</width>
+        <width>421</width>
         <height>241</height>
        </rect>
       </property>
@@ -105,7 +105,7 @@
        <rect>
         <x>0</x>
         <y>240</y>
-        <width>641</width>
+        <width>421</width>
         <height>241</height>
        </rect>
       </property>
@@ -118,89 +118,59 @@
        <rect>
         <x>0</x>
         <y>480</y>
-        <width>641</width>
+        <width>421</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QChartView" name="graphicsView_4">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>0</y>
+        <width>371</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QChartView" name="graphicsView_5">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>240</y>
+        <width>371</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QChartView" name="graphicsView_6">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>480</y>
+        <width>371</width>
         <height>241</height>
        </rect>
       </property>
      </widget>
     </widget>
    </widget>
-   <widget class="QWidget" name="widget" native="true">
+   <widget class="QChartView" name="graphicsView_7">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>20</y>
-      <width>129</width>
-      <height>731</height>
+      <y>500</y>
+      <width>331</width>
+      <height>241</height>
      </rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-    <widget class="QWidget" name="verticalLayoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>121</width>
-       <height>191</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="leftKnee">
-        <property name="text">
-         <string>LeftKnee</string>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="rightKnee">
-        <property name="text">
-         <string>RightKnee</string>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="leftAnkle">
-        <property name="text">
-         <string>LeftAnkle</string>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="rightAnkle">
-        <property name="text">
-         <string>RightAnkle</string>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="leftFoot">
-        <property name="text">
-         <string>LeftFoot</string>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-       <widget class="QCheckBox" name="rightFoot">
-        <property name="text">
-         <string>RightFoot</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </widget>
-   <widget class="QChartView" name="graphicsView_4">
+   <widget class="QChartView" name="graphicsView_8">
     <property name="geometry">
      <rect>
-      <x>840</x>
-      <y>740</y>
-      <width>651</width>
+      <x>330</x>
+      <y>500</y>
+      <width>381</width>
       <height>241</height>
      </rect>
     </property>

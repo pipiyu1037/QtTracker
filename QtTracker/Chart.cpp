@@ -1,13 +1,14 @@
 #include "Chart.h"
 
-void Chart::init()
+void Chart::init(const QString& title)
 {
     mpQChart = std::make_shared<QChart>();
     
+    mpQChart->setTitle(title);
     //init Axis
     mpAxisX = std::make_shared<QValueAxis>();
     mpVelocityAxisY = std::make_shared<QValueAxis>();
-    mpRadAxisY = std::make_shared<QValueAxis>();
+    mpAcceAxisY = std::make_shared<QValueAxis>();
 
     mpVelocitySplineX = std::make_shared<QSplineSeries>();
     mpVelocitySplineY = std::make_shared<QSplineSeries>();
@@ -17,21 +18,25 @@ void Chart::init()
 
     mpQChart->addAxis(mpAxisX.get(), Qt::AlignBottom);
     mpQChart->addAxis(mpVelocityAxisY.get(), Qt::AlignLeft);
-    mpQChart->addAxis(mpRadAxisY.get(), Qt::AlignRight);
+    mpQChart->addAxis(mpAcceAxisY.get(), Qt::AlignRight);
 
     mpQChart->addSeries(mpVelocitySplineX.get());
     mpQChart->addSeries(mpVelocitySplineY.get());
+
     mpQChart->addSeries(mpASplineX.get());
     mpQChart->addSeries(mpASplineY.get());
 
     mpAxisX->setRange(0, 10);
     mpAxisX->setGridLineVisible(false);
+    mpAxisX->setTitleText("Time(s)");
 
-    mpVelocityAxisY->setRange(-10, 10);
+    mpVelocityAxisY->setRange(-3, 3);
     mpVelocityAxisY->setGridLineVisible(false);
+    mpVelocityAxisY->setTitleText("v(m/s)");
 
-    mpRadAxisY->setRange(-10, 10);
-    mpRadAxisY->setGridLineVisible(false);
+    mpAcceAxisY->setRange(-40, 40);
+    mpAcceAxisY->setGridLineVisible(false);
+    mpAcceAxisY->setTitleText("a(m*m/s)");
 
     mpVelocitySplineX->setName("v_x");
     mpVelocitySplineY->setName("v_y");
@@ -45,10 +50,13 @@ void Chart::init()
     mpVelocitySplineY->attachAxis(mpVelocityAxisY.get());
 
     mpASplineX->attachAxis(mpAxisX.get());
-    mpASplineX->attachAxis(mpVelocityAxisY.get());
+    mpASplineX->attachAxis(mpAcceAxisY.get());
 
     mpASplineY->attachAxis(mpAxisX.get());
-    mpASplineY->attachAxis(mpVelocityAxisY.get());
+    mpASplineY->attachAxis(mpAcceAxisY.get());
+
+    mpASplineX->setOpacity(0.3);
+    mpASplineY->setOpacity(0.3);
 }
 
 void Chart::setMaxX(qreal m)

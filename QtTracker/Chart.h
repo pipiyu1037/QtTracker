@@ -7,12 +7,12 @@
 class Chart
 {
 public:
-    Chart() {
-        init();
+    Chart(const QString& title) {
+        init(title);
     }
 
     std::shared_ptr<QChart> mpQChart = nullptr;
-    void init();
+    void init(const QString& title);
     void setMaxX(qreal m);
     void setMinX(qreal m);
 
@@ -23,5 +23,5 @@ public:
 private:
     std::shared_ptr<QValueAxis> mpAxisX = nullptr;
     std::shared_ptr<QValueAxis> mpVelocityAxisY = nullptr;
-    std::shared_ptr<QValueAxis> mpRadAxisY = nullptr;
+    std::shared_ptr<QValueAxis> mpAcceAxisY = nullptr;
 };

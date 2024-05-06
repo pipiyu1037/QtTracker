@@ -79,7 +79,6 @@ private:
     void getAngleV(Joint& Knee, Joint& Hip, Joint& Ankle, int bodyIndex);
     //void getSingleJointArgs(Joint& J, int bodyIndex);
 
-
     bool trackHipLeft = true;
     bool trackKneeLeft = true;
     bool trackAnkleLeft = true;
@@ -120,13 +119,19 @@ private:
     std::shared_ptr<QTimer> mpTimer;
 
     void initCharts();
-    std::shared_ptr<Chart> mpChart = nullptr;
 
+    std::shared_ptr<QChart> mpLeftKneeAngleChart = nullptr;
+    std::shared_ptr<QSplineSeries> mpLeftKneeAngleSeries = nullptr;
+    std::shared_ptr<QSplineSeries> mpLeftKneeAngleVSeries = nullptr;
+    std::shared_ptr<QValueAxis> mpLeftKneeAxisX = nullptr;
+    std::shared_ptr<QValueAxis> mpLeftKneeAxisY = nullptr;
+
+    std::shared_ptr<QChart> mpRightKneeAngleChart = nullptr;
+    std::shared_ptr<QSplineSeries> mpRightKneeAngleSeries = nullptr;
+    std::shared_ptr<QSplineSeries> mpRightKneeAngleVSeries = nullptr;
+    std::shared_ptr<QValueAxis> mpRightKneeAxisX = nullptr;
+    std::shared_ptr<QValueAxis> mpRightKneeAxisY = nullptr;
     
-    /*std::shared_ptr<QChart> mpLeftKneeChart;
-    std::shared_ptr<QSplineSeries> mpVelocitySpline;
-    std::shared_ptr<QValueAxis> mpAxisX;
-    std::shared_ptr<QValueAxis> mpAxisY;*/
     std::array<std::shared_ptr<Chart>, JointType::JointType_Count> mpCharts = { nullptr };
 
 };

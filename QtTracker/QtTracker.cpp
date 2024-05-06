@@ -22,6 +22,7 @@ void DrawLine(cv::Mat& Img, const Joint& r1, const Joint& r2, ICoordinateMapper*
     pMapper->MapCameraPointToColorSpace(r1.Position, &p1);
     pMapper->MapCameraPointToColorSpace(r2.Position, &p2);
 
+    //if the Joint position is invalid, return
     if (isnan(p1.X) || isnan(p1.Y) || isinf(p1.X) || isinf(p1.Y)) {
         return;
     }
@@ -29,6 +30,7 @@ void DrawLine(cv::Mat& Img, const Joint& r1, const Joint& r2, ICoordinateMapper*
     if (isnan(p2.X) || isnan(p2.Y) || isinf(p2.X) || isinf(p2.Y)) {
         return;
     }
+
     //draw line
     cv::line(Img, cv::Point(p1.X, p1.Y), cv::Point(p2.X, p2.Y), cv::Vec3b(0, 0, 255), 4);
 }
@@ -56,7 +58,10 @@ QtTracker::QtTracker(QWidget *parent)
     mpTimer = std::make_shared<QTimer>(this);
     mpQImg = std::make_shared<QImage>();
 
+    //process frame once time out
     connect(mpTimer.get(), SIGNAL(timeout() ), this, SLOT(processFrame() ));
+
+    //set button click event
     connect(ui.Begin, SIGNAL(clicked()), this, SLOT(begin() ));
     connect(ui.Pause, SIGNAL(clicked()), this, SLOT(pause() ));
     connect(ui.Stop, SIGNAL(clicked()), this, SLOT(stop()));
@@ -65,11 +70,14 @@ QtTracker::QtTracker(QWidget *parent)
         std::runtime_error("failed to init kinect");
         exit(0);
     }
+
+    // init Body vector
     mpBodies = std::vector<IBody*>(bodyCount, nullptr);
 }
 
 QtTracker::~QtTracker()
 {
+    //release resource
     sensor->Close();
     SafeRelease(sensor);
     SafeRelease(mpBodyFrameReader);
@@ -80,6 +88,8 @@ QtTracker::~QtTracker()
 bool QtTracker::init()
 {
     HRESULT hr;
+
+    //get kinect sensor
     hr = GetDefaultKinectSensor(&sensor);
     if (FAILED(hr)) {
         std::cout << "failed to get kinect " << std::endl;
@@ -105,6 +115,7 @@ bool QtTracker::init()
         if (SUCCEEDED(hr)) {
             hr = sensor->get_ColorFrameSource(&pColorFrameSource);
 
+            //get frame width and height
             pColorFrameSource->get_FrameDescription(&pFrameDescription);
             pFrameDescription->get_Width(&width);
             pFrameDescription->get_Height(&height);
@@ -138,19 +149,90 @@ bool QtTracker::init()
 
 void QtTracker::initCharts()
 {   
-    mpCharts[JointType_KneeLeft] = std::make_shared<Chart>();
-    mpCharts[JointType_AnkleLeft] = std::make_shared<Chart>();
-    mpCharts[JointType_FootLeft] = std::make_shared<Chart>();
+    mpCharts[JointType_KneeLeft] = std::make_shared<Chart>("KneeLeft");
+    mpCharts[JointType_AnkleLeft] = std::make_shared<Chart>("AnkleLeft");
+    mpCharts[JointType_FootLeft] = std::make_shared<Chart>("FootLeft");
 
-    mpCharts[JointType_KneeRight] = std::make_shared<Chart>();
-    mpCharts[JointType_AnkleRight] = std::make_shared<Chart>();
-    mpCharts[JointType_FootRight] = std::make_shared<Chart>();
+    mpCharts[JointType_KneeRight] = std::make_shared<Chart>("KneeRight");
+    mpCharts[JointType_AnkleRight] = std::make_shared<Chart>("AnkleRight");
+    mpCharts[JointType_FootRight] = std::make_shared<Chart>("FootRight");
+
+    mpLeftKneeAngleChart = std::make_shared<QChart>();
+    mpRightKneeAngleChart = std::make_shared<QChart>();
+    mpLeftKneeAngleChart->setTitle("Left Knee Angle");
+    mpRightKneeAngleChart->setTitle("Right Knee Angle");
+
+    mpLeftKneeAngleSeries = std::make_shared<QSplineSeries>();
+    mpLeftKneeAngleVSeries = std::make_shared<QSplineSeries>();
+    mpLeftKneeAngleSeries->setName("angle");
+    mpLeftKneeAngleVSeries->setName("angle v");
+
+    mpRightKneeAngleSeries = std::make_shared<QSplineSeries>();
+    mpRightKneeAngleVSeries = std::make_shared<QSplineSeries>();
+    mpRightKneeAngleSeries->setName("angle");
+    mpRightKneeAngleVSeries->setName("angle v");
+
+    mpLeftKneeAxisX = std::make_shared<QValueAxis>();
+    mpLeftKneeAxisY = std::make_shared<QValueAxis>();
+    mpLeftKneeAxisX->setGridLineVisible(false);
+    mpLeftKneeAxisY->setGridLineVisible(false);
+    mpLeftKneeAxisX->setTitleText("Time(s)");
+    mpLeftKneeAxisY->setTitleText("rad");
+    mpLeftKneeAxisX->setRange(0, 10);
+    mpLeftKneeAxisY->setRange(-3.5, 3.5);
+
+    mpRightKneeAxisX = std::make_shared<QValueAxis>();
+    mpRightKneeAxisY = std::make_shared<QValueAxis>();
+    mpRightKneeAxisX->setGridLineVisible(false);
+    mpRightKneeAxisY->setGridLineVisible(false);
+    mpRightKneeAxisX->setTitleText("Time(s)");
+    mpRightKneeAxisY->setTitleText("rad");
+    mpRightKneeAxisX->setRange(0, 10);
+    mpRightKneeAxisY->setRange(-3.5, 3.5);
+
+    //leftKneeAngle init
+    mpLeftKneeAngleChart->addAxis(mpLeftKneeAxisX.get(), Qt::AlignBottom);
+    mpLeftKneeAngleChart->addAxis(mpLeftKneeAxisY.get(), Qt::AlignLeft);
+
+    mpLeftKneeAngleChart->addSeries(mpLeftKneeAngleSeries.get());
+    mpLeftKneeAngleChart->addSeries(mpLeftKneeAngleVSeries.get());
+
+    mpLeftKneeAngleSeries->attachAxis(mpLeftKneeAxisX.get());
+    mpLeftKneeAngleSeries->attachAxis(mpLeftKneeAxisY.get());
+
+    mpLeftKneeAngleVSeries->attachAxis(mpLeftKneeAxisX.get());
+    mpLeftKneeAngleVSeries->attachAxis(mpLeftKneeAxisY.get());
+
+    //Right Knee Angle init
+    mpRightKneeAngleChart->addAxis(mpRightKneeAxisX.get(), Qt::AlignBottom);
+    mpRightKneeAngleChart->addAxis(mpRightKneeAxisY.get(), Qt::AlignLeft);
+
+    mpRightKneeAngleChart->addSeries(mpRightKneeAngleSeries.get());
+    mpRightKneeAngleChart->addSeries(mpRightKneeAngleVSeries.get());
+
+    mpRightKneeAngleSeries->attachAxis(mpRightKneeAxisX.get());
+    mpRightKneeAngleSeries->attachAxis(mpRightKneeAxisY.get());
+
+    mpRightKneeAngleVSeries->attachAxis(mpRightKneeAxisX.get());
+    mpRightKneeAngleVSeries->attachAxis(mpRightKneeAxisY.get());
 
     ui.graphicsView->setChart(mpCharts[JointType_KneeLeft]->mpQChart.get());
     ui.graphicsView->setRenderHint(QPainter::Antialiasing);
 
     ui.graphicsView_2->setChart(mpCharts[JointType_AnkleLeft]->mpQChart.get());
+    ui.graphicsView_2->setRenderHint(QPainter::Antialiasing);
+
     ui.graphicsView_3->setChart(mpCharts[JointType_FootLeft]->mpQChart.get());
+    ui.graphicsView_3->setRenderHint(QPainter::Antialiasing);
+
+    ui.graphicsView_4->setChart(mpCharts[JointType_KneeRight]->mpQChart.get());
+
+    ui.graphicsView_5->setChart(mpCharts[JointType_AnkleRight]->mpQChart.get());
+
+    ui.graphicsView_6->setChart(mpCharts[JointType_FootRight]->mpQChart.get());
+
+    ui.graphicsView_7->setChart(mpLeftKneeAngleChart.get());
+    ui.graphicsView_8->setChart(mpRightKneeAngleChart.get());
 }
 
 bool QtTracker::update()
@@ -165,11 +247,11 @@ bool QtTracker::update()
 
     IColorFrame* pColorFrame = nullptr;
 
-    if (mpColorFrameReader->AcquireLatestFrame(&pColorFrame) == S_OK) {
+    /*if (mpColorFrameReader->AcquireLatestFrame(&pColorFrame) == S_OK) {
         pColorFrame->CopyConvertedFrameDataToArray(uBufferSize, colorImg.data, ColorImageFormat_Bgra);
-    }
+    }*/
 
-    Img = colorImg.clone();
+    Img = cv::Scalar(0.f);
     IBodyFrame* pBodyFrame = nullptr;
 
     if (mpBodyFrameReader->AcquireLatestFrame(&pBodyFrame) == S_OK && pBodyFrame->GetAndRefreshBodyData(bodyCount, mpBodies.data()) == S_OK) {
@@ -187,6 +269,9 @@ bool QtTracker::update()
             {
                 if (pBody->GetJoints(JointType::JointType_Count, currentJoints[i].data()) == S_OK)
                 {
+                    getAngleV(currentJoints[i][JointType_KneeLeft], currentJoints[i][JointType_HipLeft], currentJoints[i][JointType_AnkleLeft], i);
+                    getAngleV(currentJoints[i][JointType_KneeRight], currentJoints[i][JointType_HipRight], currentJoints[i][JointType_AnkleRight], i);
+
                     getJointVelocity(currentJoints[i][JointType_SpineBase], i);
 
                     getJointVelocity(currentJoints[i][JointType_HipLeft], i);
@@ -285,6 +370,7 @@ void QtTracker::getJointVelocity(Joint& J, int bodyIndex)
 
         mpCharts[J.JointType]->mpVelocitySplineX->append(currentToStart, v_x);
         mpCharts[J.JointType]->mpVelocitySplineY->append(currentToStart, v_y);
+
         if (currentToStart > 10.f) {
             mpCharts[J.JointType]->setMinX(currentToStart - 10.f);
             mpCharts[J.JointType]->setMaxX(currentToStart);
@@ -331,44 +417,69 @@ void QtTracker::getAngleV(Joint& Knee, Joint& Hip, Joint& Ankle, int bodyIndex)
         return;
     }
 
-    if (!args.lastLeftAngleInit) {
-        args.lastLeftAngle = getAngle(Knee, Hip, Ankle, bodyIndex);
+    //process left knee
+    if (Knee.JointType == JointType_KneeLeft) {
+        if (!args.lastLeftAngleInit) {
+            args.lastLeftAngle = getAngle(Knee, Hip, Ankle, bodyIndex);
+            args.lastLeftAngleTime = currentTime;
+            args.lastLeftAngleInit = true;
+            return;
+        }
+
+        float angle = getAngle(Knee, Hip, Ankle, bodyIndex);
+        if (isnan(angle) || isinf(angle)) {
+            return;
+        }
+
+        double durationSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - args.lastLeftAngleTime).count();
+        args.leftAngleV = (angle - args.lastLeftAngle) / durationSeconds;
+
+        if (currentToStart > 10.f) {
+            mpLeftKneeAxisX->setMax(currentToStart);
+            mpLeftKneeAxisX->setMin(currentToStart - 10.f);
+        }
+
+        mpLeftKneeAngleSeries->append(currentToStart, angle);
+        mpLeftKneeAngleVSeries->append(currentToStart, args.leftAngleV);
+
         args.lastLeftAngleTime = currentTime;
-        args.lastLeftAngleInit = true;
-        return;
+        args.lastLeftAngle = angle;
+
+    }
+    else if (Knee.JointType == JointType_KneeRight)
+    {
+        if (!args.lastRightAngleInit) {
+            args.lastRightAngle = getAngle(Knee, Hip, Ankle, bodyIndex);
+            args.lastRightAngleTime = currentTime;
+            args.lastRightAngleInit = true;
+            return;
+        }
+
+        float angle = getAngle(Knee, Hip, Ankle, bodyIndex);
+        if (isnan(angle) || isinf(angle)) {
+            return;
+        }
+
+        double durationSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - args.lastRightAngleTime).count();
+        args.rightAngleV = (angle - args.lastRightAngle) / durationSeconds;
+
+        if (currentToStart > 10.f) {
+            mpRightKneeAxisX->setMax(currentToStart);
+            mpRightKneeAxisX->setMin(currentToStart - 10.f);
+        }
+
+        mpRightKneeAngleSeries->append(currentToStart, angle);
+        mpRightKneeAngleVSeries->append(currentToStart, args.rightAngleV);
+
+        args.lastRightAngleTime = currentTime;
+        args.lastLeftAngle = angle;
     }
 
-    double durationSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - args.lastLeftAngleTime).count();
-    args.leftAngleV = (getAngle(Knee, Hip, Ankle, bodyIndex) - args.lastLeftAngle) / durationSeconds;
+    return;
 }
 
 QImage QtTracker::Mat2Image(cv::Mat& cvImg)
 {
-    //QImage qImg;
-    //if (cvImg.channels() == 3)     //3 channels color image
-    //{
-    //    cv::cvtColor(cvImg, cvImg, cv::COLOR_BGR2RGB);
-    //    qImg = QImage((const unsigned char*)(cvImg.data),
-    //        cvImg.cols, cvImg.rows,
-    //        cvImg.cols * cvImg.channels(),
-    //        QImage::Format_RGB888);
-    //}
-    //else if (cvImg.channels() == 1)                    //grayscale image
-    //{
-    //    qImg = QImage((const unsigned char*)(cvImg.data),
-    //        cvImg.cols, cvImg.rows,
-    //        cvImg.cols * cvImg.channels(),
-    //        QImage::Format_Indexed8);
-    //}
-    //else
-    //{
-    //    qImg = QImage((const unsigned char*)(cvImg.data),
-    //        cvImg.cols, cvImg.rows,
-    //        cvImg.cols * cvImg.channels(),
-    //        QImage::Format_RGB888);
-    //}
-    //return qImg;
-
     cv::Mat temp;
     cv::cvtColor(cvImg, temp, cv::COLOR_BGR2RGB);
     QImage image((const uchar*)temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);

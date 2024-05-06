@@ -18,6 +18,7 @@ public:
 	std::array<std::array<vec2f, JointType::JointType_Count>, bodyCount> lastVelocity;
 	std::vector<std::vector<bool>> velocityInitialied = std::vector<std::vector<bool>>(bodyCount, std::vector<bool>(JointType::JointType_Count, false));
 
+	//last acceleration
 	std::array<std::array<vec2f, JointType::JointType_Count>, bodyCount> lastA;
 
 	//last tracked time
