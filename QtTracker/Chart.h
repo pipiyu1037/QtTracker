@@ -24,4 +24,6 @@ private:
     std::shared_ptr<QValueAxis> mpAxisX = nullptr;
     std::shared_ptr<QValueAxis> mpVelocityAxisY = nullptr;
     std::shared_ptr<QValueAxis> mpAcceAxisY = nullptr;
+
+    void reset();
 };

@@ -317,6 +317,7 @@ bool QtTracker::update()
 void QtTracker::begin()
 {
     //mpTimer->setInterval(30);
+
     mpTimer->start(40);
 }
 
@@ -328,6 +329,18 @@ void QtTracker::pause()
 void QtTracker::stop()
 {
     mpTimer->stop();
+    args.lastLeftAngleInit = false;
+    args.lastRightAngleInit = false;
+
+    for (int i = 0; i < bodyCount; i++) {
+        for (int j = 0; j < JointType_Count; j++) {
+            args.posInitialized[i][j] = false;
+            args.velocityInitialied[i][j] = false;
+            startTrack = false;
+        }
+    }
+
+    mpLeftKneeAngleSeries->clear();
 }
 
 void QtTracker::processFrame()

@@ -68,3 +68,12 @@ void Chart::setMinX(qreal m)
 {
     mpAxisX->setMin(m);
 }
+
+void Chart::reset()
+{
+    mpAxisX->setRange(0, 10);
+    mpVelocitySplineX->clear();
+    mpVelocitySplineY->clear();
+    mpASplineX->clear();
+    mpASplineY->clear();
+}
