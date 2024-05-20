@@ -83,16 +83,22 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>919</width>
-       <height>719</height>
+       <width>909</width>
+       <height>1000</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>1000</height>
+      </size>
      </property>
      <widget class="QChartView" name="graphicsView">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>421</width>
+        <width>411</width>
         <height>241</height>
        </rect>
       </property>
@@ -105,7 +111,7 @@
        <rect>
         <x>0</x>
         <y>240</y>
-        <width>421</width>
+        <width>411</width>
         <height>241</height>
        </rect>
       </property>
@@ -118,7 +124,7 @@
        <rect>
         <x>0</x>
         <y>480</y>
-        <width>421</width>
+        <width>411</width>
         <height>241</height>
        </rect>
       </property>
@@ -126,9 +132,9 @@
      <widget class="QChartView" name="graphicsView_4">
       <property name="geometry">
        <rect>
-        <x>420</x>
+        <x>410</x>
         <y>0</y>
-        <width>371</width>
+        <width>361</width>
         <height>241</height>
        </rect>
       </property>
@@ -136,9 +142,9 @@
      <widget class="QChartView" name="graphicsView_5">
       <property name="geometry">
        <rect>
-        <x>420</x>
+        <x>410</x>
         <y>240</y>
-        <width>371</width>
+        <width>361</width>
         <height>241</height>
        </rect>
       </property>
@@ -146,9 +152,29 @@
      <widget class="QChartView" name="graphicsView_6">
       <property name="geometry">
        <rect>
-        <x>420</x>
+        <x>410</x>
         <y>480</y>
-        <width>371</width>
+        <width>361</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QChartView" name="graphicsView_9">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>720</y>
+        <width>411</width>
+        <height>241</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QChartView" name="graphicsView_10">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>720</y>
+        <width>361</width>
         <height>241</height>
        </rect>
       </property>

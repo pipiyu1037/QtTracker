@@ -26,7 +26,7 @@ void Chart::init(const QString& title)
     mpQChart->addSeries(mpASplineX.get());
     mpQChart->addSeries(mpASplineY.get());
 
-    mpAxisX->setRange(0, 10);
+    mpAxisX->setRange(0, 20);
     mpAxisX->setGridLineVisible(false);
     mpAxisX->setTitleText("Time(s)");
 
@@ -71,7 +71,7 @@ void Chart::setMinX(qreal m)
 
 void Chart::reset()
 {
-    mpAxisX->setRange(0, 10);
+    mpAxisX->setRange(0, 20);
     mpVelocitySplineX->clear();
     mpVelocitySplineY->clear();
     mpASplineX->clear();
